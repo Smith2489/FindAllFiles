@@ -1,30 +1,11 @@
 from os import walk
-import os.path
+from verify import validate_string, response_valid, VALID_BIN_RESPONSES, VALID_PRINT_OPTIONS, VALID_SEPARATORS
+from save_to_file import save_to_file
 
-
-def response_valid(response, valid_responses):
-    if(type(response) != str or (type(valid_responses) != tuple and type(valid_responses) != list)):
-        return False
-    for string in valid_responses:
-        if(response == string):
-            return True
-    return False
-
-def validate_string(msg, valid_responses, alternative_response, default_state, alternative_state):
-    while(True):
-        temp = input(msg+" ").lower()
-        if(not(response_valid(temp, valid_responses))):
-            print("ERROR: INVALID RESPONSE INPUT")
-            continue
-        if(temp[0] == alternative_response):
-            return alternative_state
-        return default_state
 
 def main():
-    VALID_BIN_RESPONSES = ("y", "n", "yes", "no")
-    VALID_PRINT_OPTIONS = ("console", "file")
-    VALID_SEPARATORS = ("space", "newline", "new line")
-    path = input("PLEASE INPUT THE PATH TO THE DESIRED DIRECTORY\n").replace("/", "\\")
+
+    path = input("PLEASE INPUT THE PATH TO THE DESIRED DIRECTORY\n")
     type = ""
     console = True
 
@@ -39,7 +20,7 @@ def main():
 
     remove_root = validate_string("DO YOU WITH TO INCLUDE THE ROOT? (Y/N)", VALID_BIN_RESPONSES, 'n', False, True)
 
-    separator = validate_string("SEPARATE WITH A SPACE OR A NEW LINE", VALID_SEPARATORS, 'n', " ", "\n")
+    separator = validate_string("SEPARATE WITH A SPACE OR A NEW LINE?", VALID_SEPARATORS, 'n', " ", "\n")
 
     while(True):
         temp = input("DO YOU WISH TO PRINT TO THE CONSOLE OR A FILE? ").lower()
@@ -69,25 +50,23 @@ def main():
     if(remove_root):
         for i in range(len(directoryPaths)):
             directoryPaths[i] = directoryPaths[i].replace(path, "", 1)
-        
+    out = ""
     for i in range(len(directoryPaths)):
         if(print_progress):
             print(directoryPaths[i]+":")
             print(fileNames[i])
             print()
-
+        for j in range(len(fileNames[i])):
+            out+=(directoryPaths[i]+"\\"+fileNames[i][j])
+            if(j < (len(fileNames[i])-1) or i < (len(directoryPaths)-1)):
+                out+=separator
+    out = out.replace("\\", "/")
     if(console):
-        print()
+        print(out)
         return
     
-    modify = False
-    while(not(modify)):
-        out_file = input("PLEASE INPUT THE NAME OF THE OUTPUT FILE: ")
-        if(os.path.isfile(out_file)):
-            print("FILE ALREADY EXISTS", " ")
-            modify = validate_string("DO YOU WISH TO OVERWRITE IT? (Y/N)", VALID_BIN_RESPONSES, 'n', True, False)
-        else:
-            modify = True
+    save_to_file(out)
+
     return
 
 
